@@ -1,0 +1,97 @@
+{
+  "extends": [
+    "airbnb-base/legacy",
+    "eslint:recommended",
+    "plugin:import/errors",
+    "plugin:import/warnings",
+    "plugin:promise/recommended"
+  ],
+  "env": {
+    "browser": true,
+    "commonjs": true,
+    "es6": true,
+    "jquery": true,
+    "webextensions": true
+  },
+  "plugins": [
+    "jquery",
+    "import",
+    "promise",
+    "no-loops"
+  ],
+  "parser": "babel-eslint",
+  "parserOptions": {
+    "ecmaVersion": 2018,
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "jsx": false,
+      "modules": true
+    }
+  },
+  "globals": {},
+  "rules": {
+    "max-classes-per-file": "off", // deleting
+    "no-console": "off",
+    "func-names": "off",
+    "no-use-before-define": "off",
+    "no-extend-native": "off",
+    "no-extra-semi": "warn",
+    "no-unused-vars": "off",
+    "no-param-reassign": [
+      "error",
+      {
+        "props": true,
+        "ignorePropertyModificationsForRegex": [
+          "^[$,o]"
+        ]
+      }
+    ],
+    "class-methods-use-this": "off",
+    "no-loops/no-loops": "off", // deleting (2)
+    "prettier/prettier": [
+      "off",
+      {
+        "htmlWhitespaceSensitivity": "ignore",
+        "endOfLine": "auto",
+        "singleQuote": true,
+        "parser": "flow"
+      }
+    ],
+    "indent": [
+      "error",
+      2
+    ],
+    "import/no-extraneous-dependencies": "off",
+    "import/prefer-default-export": "off",
+    "no-confusing-arrow": "off",
+    "linebreak-style": "off",
+    "arrow-parens": [
+      "off",
+      "as-needed"
+    ],
+    "comma-dangle": [
+      "error",
+      {
+        "arrays": "always-multiline",
+        "objects": "always-multiline",
+        "imports": "always-multiline",
+        "exports": "always-multiline",
+        "functions": "ignore"
+      }
+    ],
+    "no-plusplus": "off",
+    "max-len": [
+      "warn",
+      {
+        "code": 120,
+        "tabWidth": 2,
+        "ignoreComments": false,
+        "ignoreTrailingComments": true,
+        "ignoreUrls": true,
+        "ignoreStrings": true,
+        "ignoreTemplateLiterals": true,
+        "ignoreRegExpLiterals": true
+      }
+    ]
+  }
+}

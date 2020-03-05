@@ -1,0 +1,862 @@
+@mixin mTransition($ev) {
+  -webkit-transition: $ev;
+  -moz-transition: $ev;
+  -o-transition: $ev;
+  transition: $ev;
+}
+
+@mixin verticalAlignment() {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+@function pow($number, $exponent) {
+  @if (round($exponent) != $exponent) {
+    @return exp($exponent * ln($number));
+  }
+
+  $value: 1;
+
+  @if $exponent > 0 {
+    @for $i from 1 through $exponent {
+     $value: $value * $number;
+    }
+  } @else if $exponent < 0 {
+    @for $i from 1 through -$exponent {
+      $value: $value / $number;
+    }
+  }
+
+  @return $value;
+}
+
+@function factorial($value) {
+  $result: 1;
+
+  @if $value == 0 {
+    @return $result;
+  }
+
+  @for $index from 1 through $value {
+    $result: $result * $index;
+  }
+
+  @return $result;
+}
+
+@function summation($iteratee, $input, $initial: 0, $limit: 100) {
+  $sum: 0;
+
+  @for $index from $initial to $limit {
+    $sum: $sum + call($iteratee, $input, $index);
+  }
+
+  @return $sum;
+}
+
+@function exp-maclaurin($x, $n) {
+  @return (pow($x, $n) / factorial($n));
+}
+
+@function exp($value) {
+  @return summation('exp-maclaurin', $value, 0, 100);
+}
+
+@function ln-maclaurin($x, $n) {
+  @return (pow(-1, $n + 1) / $n) * (pow($x - 1, $n));
+}
+
+@function ln($value) {
+  $ten-exp: 1;
+  $ln-ten: 2.30258509;
+
+  @while ($value > pow(10, $ten-exp)) {
+    $ten-exp: $ten-exp + 1;
+  }
+
+  @return summation(ln-maclaurin, $value / pow(10, $ten-exp), 1, 100) + $ten-exp * $ln-ten;
+}
+
+$colors: (
+	followedL: var(--followedL),
+	likedL: var(--likedL),
+	commentedL: var(--commentedL),
+	taggedL: var(--taggedL),
+	deletedL: var(--deletedL),
+	unreadL: var(--unreadL),
+
+	followed: var(--followed),
+	liked: var(--liked),
+	commented: var(--commented),
+	tagged: var(--tagged),
+	deleted: var(--deleted),
+	unread: var(--unread),
+);
+
+$dark1: #1a1a1a;
+$dark2: #696969;
+
+$white1: #fff;
+$white2: #515c63;
+
+:root[theme="dark"] {
+	--background: #1a1a1a;
+
+	--tileUltra: #5a5a5a;
+	--tileLight: #424242;
+	--tile: #2b2b2b;
+	--tileLow: #2b2b2b3d;
+
+	--fontLight: #b6b6b6;
+	--fontNorm: #868686;
+	--fontLow: #696969;
+
+	--followedL: rgb(0, 189, 125);
+	--likedL: rgb(173, 0, 69);
+	--commentedL: rgb(0, 161, 193);
+	--taggedL: rgb(182, 187, 0);
+	--deletedL: rgb(193, 193, 193);
+	--unreadL: rgb(223, 53, 1);
+
+	--followed: rgba(6,124,84,0.4);
+	--liked: rgba(124,6,53,0.4);
+	--commented: rgba(6,104,124,0.4);
+	--tagged: rgba(121,124,6,0.4);
+	--deleted: rgba(159,159,159,0.4);
+	--unread: hsla(14, 99%, 44%, 0.4);
+
+	--palette: rgb(175, 175, 175);
+
+	--unreadLine: #de3501;
+	--deleteColor: rgb(173, 0, 29);
+	--colShadow: #1b1b1b;
+}
+
+:root[theme="white"] {
+	--background: #fff;
+
+	--tileUltra: #d4d4d4;
+	--tileLight: #eaeaea;
+	--tile: #f3f5f6;
+	--tileLow: #f3f5f6;
+
+	--fontLight: #39464e;
+	--fontNorm: #39464e;
+	--fontLow: #515c63;
+
+	--followedL: rgb(0, 255, 60);
+	--likedL: rgb(255, 0, 0);
+	--commentedL: rgb(0, 213, 255);
+	--taggedL: rgb(253, 155, 33);
+	--deletedL: rgb(123, 123, 123);
+	--unreadL: rgb(255, 71, 0);
+
+	--followed: rgb(199, 255, 212);
+	--liked: rgb(255, 199, 199);
+	--commented: rgb(176, 242, 255);
+	--tagged: rgb(255, 215, 166);
+	--deleted: rgb(208, 208, 208);
+	--unread: rgba(255, 72, 0, 0.15);
+
+	--palette: rgb(27, 27, 27);
+
+	--unreadLine: #ff7f42;
+	--deleteColor: rgb(247, 0, 0);
+	--colShadow: rgba(0, 0, 0, 0.397);
+}
+
+
+$wMenu: 300px;
+$wSelected: 300px;
+$wAva: 40px;
+$wPhoto: 40px;
+$wReading: 10px;
+$hItemMenu: 54px;
+$hSideBarLeft: 30px;
+$hSideBarLeftW: 30;
+$hSideBarLeftWide: 150px;
+$hHorizontalTop: 50px;
+$hHorizontalBottom: 40px;
+$hHorizontalMiddle: $hHorizontalTop + $hHorizontalBottom;
+$hMainIcon: 15px;
+
+$borderButThemes: 4;
+$baseHButThemes: $hSideBarLeftW * 0.7;
+$hButThemes: #{$baseHButThemes + $borderButThemes * 2}px;
+$diagButThemes: pow((pow($baseHButThemes, 2) + pow($baseHButThemes, 2)), 1 / 2);
+$shiftButThemes: -#{($diagButThemes / 2)}px;
+
+h1, h2, h3, h4, h5, h6, span, li, p, label {
+	font-size: 15px;
+	color: var(--fontNorm);
+	-ms-user-select: none;
+	-moz-user-select: none;
+	-khtml-user-select: none;
+	-webkit-user-select: none;
+}
+
+@import url('https://fonts.googleapis.com/css?family=Poppins:400|Poppins:400');
+
+html {font-size: 14px;}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 400;
+	line-height: 1.45;
+	min-height: 100vh;
+	background-color: var(--background);
+}
+
+p {
+	font-size: 1em;
+}
+
+h1, h2, h3, h4, h5, h6, label, input {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 400;
+  line-height: 1.15;
+}
+
+h1 {
+  margin-top: 0;
+  font-size: 3.052em;
+}
+
+h2 {
+	font-size: 2.441em;
+}
+
+h3 {
+	font-size: 1.953em;
+}
+
+h4 {
+	font-size: 1.563em;
+}
+
+h5 {
+	font-size: 1.15em;
+}
+
+h6 {
+	font-size: 0.8em;
+}
+
+input {
+	padding: 5px 10px;
+	height: 30px;
+	border: none;
+	color: var(--fontLight);
+}
+
+.disable-hover {
+  pointer-events: none;
+}
+
+.hide-input {
+	position: absolute;
+	top: -99999999999px;
+}
+
+.con-notifications {
+	position: relative;
+	height: 100%;
+	> div {
+		position: relative;
+		height: 100%;
+	}
+}
+
+.main-panel {
+	position: relative;
+	float: left;
+	width: calc(100% - #{$hSideBarLeft});
+
+	@include mTransition(width 0.2s)
+}
+
+.horizontal-top {
+	position: relative;
+	height: $hHorizontalTop;
+	width: 100%;
+}
+
+.horizontal-middle {
+	position: relative;
+	width: 100%;
+	height: calc(100vh - #{$hHorizontalMiddle});
+}
+
+.for-menu,
+.for-selected {
+	position: relative;
+	float: left;
+	height: 100%;
+	padding: 10px 0;
+	margin-left: 10px;
+}
+
+.for-menu {
+	width: $wMenu;
+	input {
+		background-color: var(--tile);
+		width: 100%;
+		padding-right: 30px;
+	}
+}
+
+.find-user-clear {
+	@include verticalAlignment();
+	right: 8px;
+	width: 16px;
+	height: 16px;
+	cursor: pointer;
+	&:hover:before,
+	&:hover:after {
+		background-color: var(--deleteColor);
+	}
+	&:before,
+	&:after {
+		content: '';
+		position: absolute;
+		height: 2px;
+		width: 12px;
+		left: 2px;
+		@include verticalAlignment();
+		background-color: var(--fontNorm);
+	}
+	&:before {
+		transform: translateY(-50%) rotate(45deg);
+	}
+	&:after {
+		transform: translateY(-50%) rotate(-45deg);
+	}
+}
+
+.for-selected {
+	width: $wSelected;
+}
+
+.con-selected {
+	position: relative;
+	height: 100%;
+	width: 100%;
+	background-color: var(--tileLow);
+}
+
+.title-selected {
+	color: var(--fontLight);
+}
+
+.side-bar-left {
+	position: relative;
+	float: left;
+	width: $hSideBarLeft;
+	height: 100%;
+
+	@include mTransition(width 0.2s);
+}
+
+.line-horiz-main {
+	position: relative;
+	width: 50%;
+	margin: 10px auto auto auto;
+	height: 1px;
+	background-color: var(--fontLight);
+}
+
+#main-menu {
+	&:checked + .side-bar-left {
+		width: $hSideBarLeftWide;
+	}
+	&:checked ~ .main-panel {
+		width: calc(100% - #{$hSideBarLeftWide});
+	}
+}
+
+.main-menu {
+	&:after,
+	&:before {
+		content: '';
+		position: absolute;
+		height: 2px;
+		width: $hSideBarLeft / 2;
+		top: 0;
+		left: $hSideBarLeft / 4;
+		background-color: var(--fontLight);
+	}
+	&:after {
+		top: 10px;
+	}
+	&:before {
+		top: 18px;
+	}
+	&:hover .main-menu-bl p {
+		color: var(--fontLight);
+	}
+}
+
+@each $type, $svg in
+(followed, user),
+(liked, like),
+(commented, comment),
+(tagged, tag),
+(deleted, rubbish),
+(unread, vision) {
+	#main-#{$type} {
+		+ .main-menu-bls {
+			> .main-icon {
+				.svg-#{$svg} > use {
+					--#{$svg}-color: #{ map-get($colors, $type) };
+				}
+			}
+			&:hover {
+				.svg-#{$svg} {
+					filter: drop-shadow( 0 0 1px #{ map-get($colors, #{$type}L) });
+					// filter: url(#blur-filter);
+				}
+				.main-menu-bl p {
+					color: map-get($colors, #{$type}L);
+				}
+			}
+		}
+		&:checked + .main-menu-bls > .main-icon {
+			.svg-#{$svg} {
+				> use {
+					--#{$svg}-color: #{ map-get($colors, #{$type}L) };
+				}
+			}
+
+			// background-color: map-get($colors, #{$type}L);
+			// box-shadow: 0px 0px 6px 0px map-get($colors, #{$type}L);
+		}
+	}
+}
+
+.main-menu-bls {
+	position: relative;
+	display: block;
+	overflow: hidden;
+	width: 100%;
+	margin-top: 10px;
+	height: $hSideBarLeft;
+	background-color: var(--tile);
+
+	&:hover {
+		background-color: var(--tileLight);
+	}
+}
+
+.main-icon {
+	position: relative;
+	height: $hMainIcon;
+	width: $hMainIcon;
+	// border-radius: 50%;
+	margin-left: ($hSideBarLeft - $hMainIcon) / 2;
+	margin-top: ($hSideBarLeft - $hMainIcon) / 2;
+}
+
+.main-menu-bl {
+	position: absolute;
+	top: 0;
+	left: $hSideBarLeft;
+	height: $hSideBarLeft;
+	margin-left: 10px;
+	max-width: $hSideBarLeftWide - $hSideBarLeft - 10px;
+	> p {
+		line-height: $hSideBarLeft;
+		white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+	}
+}
+
+#main-themes {
+	+ .main-menu-bls > .main-icon {
+		.svg-palette > use {
+			--palette-color: var(--palette);
+		}
+	}
+
+	&:checked + .main-menu-bls {
+		background-color: var(--tileLight);
+		.con-theme-list {
+			display: block;
+			z-index: 2;
+		}
+	}
+}
+
+.con-theme-list {
+	// position: absolute;
+	@include verticalAlignment();
+	display: none;
+	width: #{$baseHButThemes + $borderButThemes * 2 + 6}px;
+	padding: 3px;
+	right: -$hSideBarLeft - 10px - 5px;
+	background-color: var(--tile);
+	box-shadow: 0 0 5px var(--colShadow);
+	> li {
+		height: $hButThemes;
+	}
+	input {
+		&:checked + .but-themes {
+			border: #{$borderButThemes}px solid var(--tileUltra);
+		}
+	}
+}
+
+.main-menu-bls-over {
+	overflow: visible;
+	> .main-icon {
+		padding-top: ($hSideBarLeft - $hMainIcon) / 2;
+	}
+}
+
+.but-themes {
+	position: relative;
+	display: inline-flex;
+	width: $hButThemes;
+	height: $hButThemes;
+	border: #{$borderButThemes}px solid transparent;
+	overflow: hidden;
+	border-radius: 50%;
+	&:before,
+	&:after {
+		content: '';
+		position: absolute;
+		width: #{$diagButThemes}px;
+		height: #{$diagButThemes}px;
+		transform: rotate(45deg);
+	}
+	&:before {
+		top: $shiftButThemes;
+		left: $shiftButThemes;
+	}
+	&:after {
+		bottom: $shiftButThemes;
+		right: $shiftButThemes;
+	}
+}
+
+[for='theme-dark'] {
+	&:before {
+		background-color: $dark1;
+	}
+	&:after {
+		background-color: $dark2;
+	}
+}
+
+[for='theme-white'] {
+	&:before {
+		background-color: $white1;
+	}
+	&:after {
+		background-color: $white2;
+	}
+}
+
+
+.panel-with-menu,
+.panel-with-selected {
+	overflow: hidden;
+	position: relative;
+	float: left;
+	height: 100%;
+	margin-left: 10px;
+}
+
+.panel-with-menu {
+	background-color: var(--tile);
+	width: $wMenu;
+}
+
+.panel-with-selected {
+	background-color: var(--tileLow);
+	width: $wSelected;
+	> .list:empty + .empty-selected {
+		opacity: 1!important;
+	}
+}
+
+.list {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: inherit;
+	z-index: 1;
+}
+
+.empty-selected {
+	position: absolute;
+	top: 0;
+	left: 0;
+	height: 100%;
+	width: 100%;
+	opacity: 0;
+	z-index: 0;
+	p {
+		text-align: center;
+		width: 100%;
+		@include verticalAlignment();
+	}
+}
+
+.item-menu {
+	position: relative;
+	width: 100%;
+}
+
+// notifications
+.con-notif {
+	position: relative;
+	display: block;
+	min-height: $hItemMenu;
+	overflow: hidden;
+	padding: 7px 10px;
+	&:hover > .con-blur img {
+		opacity: .05;
+	}
+}
+
+.con-blur {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-size: cover;
+	background-repeat: no-repeat;
+	background-position: center;
+	-webkit-filter: blur(5px);
+	-moz-filter: blur(5px);
+	filter: blur(5px);
+	img {
+		@include verticalAlignment();
+		opacity: 0;
+		width: 100%;
+		min-height: 100%;
+		// margin-top: -50%;
+
+		@include mTransition(opacity .3s);
+	}
+
+
+}
+
+.con-avatar {
+	position: relative;
+	float: left;
+	height: $wAva;
+	width: $wAva;
+	border-radius: 50%;
+	overflow: hidden;
+	> img {
+		position: relative;
+		z-index: 1;
+		width: 100%;
+		height: 100%;
+		border: none;
+		border-radius: 50%;
+		opacity: 0;
+		@include mTransition(all .3s);
+		&:hover {
+			transform: scale(1.2);
+		}
+	}
+}
+
+.con-num-notif {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: $wAva;
+	height: $wAva;
+	z-index: 1;
+	border-radius: 50%;
+	background-color: var(--tile);
+	> p {
+		line-height: $wAva;
+		text-align: center;
+		font-size: 16px;
+		color: var(--fontLight);
+		// text-shadow: 0 0 2px #000, 0 0 2px #000, 0 0 2px #000;
+	}
+}
+
+.con-content {
+	position: relative;
+	float: left;
+	padding: 0 10px;
+	min-height: $wAva;
+	width: calc(100% - #{$wAva} - #{$wPhoto} - #{$wReading});
+	h5 {
+		color: var(--fontLight);
+	}
+	h6 {
+		color: var(--fontNorm);
+	}
+}
+
+.content-vert-align {
+	width: calc(100% - 20px);
+	@include verticalAlignment();
+}
+
+.content-title,
+.content-time {
+	position: relative;
+
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	word-wrap: break-word;
+
+	display: inline-flex;
+	max-width: 100%;
+}
+
+.content-title[data-user] {
+	&:hover {
+		text-decoration: underline;
+		cursor: pointer;
+	}
+}
+
+.con-photo {
+	position: relative;
+	float: left;
+	height: $wPhoto;
+	width: $wPhoto;
+	overflow: hidden;
+	> img {
+		width: 100%;
+		height: auto;
+		border: none;
+		opacity: 0;
+		@include mTransition(opacity 300ms);
+		@include verticalAlignment();
+	}
+}
+
+.con-reading {
+	position: relative;
+	float: right;
+	height: $wAva;
+	width: $wReading;
+	&:hover > .reading-bubble {
+		height: $wAva;
+		border-radius: 5px;
+	}
+}
+
+.reading-bubble {
+	@include verticalAlignment();
+	width: 100%;
+	height: $wReading - 3px;
+	width: $wReading - 3px;
+	margin-left: 5px;
+	border-radius: 50%;
+	background-color: var(--unreadLine);
+	@include mTransition(all 0.3s);
+}
+
+.horizontal-bottom {
+	position: relative;
+	height: $hHorizontalBottom;
+	width: 100%;
+
+	> div {
+		position: relative;
+		height: calc(100% - 20px);
+		margin: 10px 0 10px 10px;
+		padding: 0 10px;
+		background-color: var(--tile);
+		display: inline-flex;
+
+		> p,
+		> span {
+			font-size: 11px;
+			float: left;
+			line-height: calc(#{$hHorizontalBottom} - 20px);
+		}
+
+		> p {
+			padding-left: 5px;
+		}
+
+		> span {
+			color: var(--fontLight);
+		}
+
+		&:hover {
+			background-color: var(--tileLight);
+		}
+	}
+}
+
+//settings for groups and singles
+.group > .con-blur,
+.group .con-avatar > img,
+.group > .con-photo,
+.single .con-num-notif,
+.single .con-photo,
+.single-photo .con-num-notif,
+.disabled,
+img[src=''],
+img[src="#"] {
+	display: none;
+}
+
+.visible {
+  opacity: 1!important;
+}
+
+.visible-blur {
+  opacity: .15!important;
+}
+
+.followed,
+.liked,
+.commented,
+.tagged,
+.deleted {
+	@include mTransition(all .4s);
+}
+
+@each $type in followed, liked, commented, tagged, deleted {
+	.#{$type} {
+		background: linear-gradient(90deg, map-get($colors, $type) 0%, map-get($colors, $type) 2%, rgba(0,0,0,0) 68%);
+		&:hover {
+			background: linear-gradient(90deg, map-get($colors, $type) 0%, map-get($colors, $type) 100%);
+		}
+	}
+}
+
+.div-anim-processing {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 30px;
+  height: 2px;
+  opacity: 0;
+  background-color: #03d7ab;
+  animation: moveLR 1s ease-in-out alternate-reverse infinite;
+
+  @include mTransition(opacity 0.5s ease);
+}
+
+.div-anim-processing[activate=true] {
+  opacity: 1;
+}
+
+@keyframes moveLR {
+  from {
+    left: calc(100% - 30px);
+  }
+  to {
+    left: 0%;
+  }
+}

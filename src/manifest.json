@@ -1,0 +1,49 @@
+{
+  "manifest_version": 2,
+  "name": "nbc",
+  "description": "nbc - Notifications BelaCam",
+  "minimum_chrome_version": "53",
+  "version": "1.0.0",
+  "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
+  "browser_action": {
+    "default_title": "Notifications Belacam",
+    "default_icon": "images/favicon/icon.png",
+    "default_popup": "popup.html"
+  },
+  "permissions": [
+    "activeTab",
+    "tabs",
+    "webRequest",
+    "webRequestBlocking",
+    "*://*/*",
+    "storage",
+    "cookies"
+  ],
+  "background": {
+    "scripts": [
+      "background.js"
+    ]
+  },
+  "web_accessible_resources": [
+    "*.css",
+    "images/*/*",
+    "fonts/*/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.belacam.com/*"
+      ],
+      "js": [
+        "jquery.min.js",
+        "contentBcPage.js"
+      ],
+      "run_at": "document_end"
+    }
+  ],
+  "externally_connectable": {
+    "matches": [
+      "https://www.belacam.com/*"
+    ]
+  }
+}

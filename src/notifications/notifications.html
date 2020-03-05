@@ -1,0 +1,166 @@
+</html>
+<!DOCTYPE html>
+<html lang="ru" theme="dark">
+
+<head>
+  <meta charset="UTF-8">
+
+  <title>BC - Notifications</title>
+
+</head>
+
+<body>
+
+  <div class="our-grid">
+    <div class="row clearfix">
+      <div class="con-notifications col-ml-12">
+        <div class="con-panels clearfix">
+
+          <input id="main-menu" type="checkbox" class="hide-input"/>
+          <div class="side-bar-left">
+
+            <label for="main-menu" class="main-menu main-menu-bls">
+              <div class="main-menu-bl">
+                <p>Menu</p>
+              </div>
+            </label>
+
+            <div class="line-horiz-main"></div>
+
+            <input id="main-followed" type="checkbox" class="hide-input" filter="followers" checked="checked"/>
+            <label for="main-followed" class="main-menu-bls">
+              <div class="main-icon">
+                <svg class="svg-user" viewBox="0 0 277.58 277.58"><use xlink:href="#symbol-user"/></svg>
+              </div>
+              <div class="main-menu-bl">
+                <p>Followers</p>
+              </div>
+            </label>
+
+            <input id="main-liked" type="checkbox" class="hide-input" filter="likes" checked="checked"/>
+            <label for="main-liked" class="main-menu-bls">
+              <div class="main-icon">
+                <svg class="svg-like" viewBox="0 0 512.001 512.001"><use xlink:href="#symbol-like"/></svg>
+              </div>
+              <div class="main-menu-bl">
+                <p>Likes</p>
+              </div>
+            </label>
+
+            <input id="main-commented" type="checkbox" class="hide-input" filter="comments" checked="checked"/>
+            <label for="main-commented" class="main-menu-bls">
+              <div class="main-icon">
+                <svg class="svg-comment" viewBox="0 0 511.626 511.626"><use xlink:href="#symbol-comment"/></svg>
+              </div>
+              <div class="main-menu-bl">
+                <p>Comments</p>
+              </div>
+            </label>
+
+            <input id="main-tagged" type="checkbox" class="hide-input" filter="tagged" checked="checked"/>
+            <label for="main-tagged" class="main-menu-bls">
+              <div class="main-icon">
+                <svg class="svg-tag" viewBox="0 0 432.544 432.544"><use xlink:href="#symbol-tag"/></svg>
+              </div>
+              <div class="main-menu-bl">
+                <p>Tagged</p>
+              </div>
+            </label>
+
+            <input id="main-deleted" type="checkbox" class="hide-input" filter="deleted" checked="checked"/>
+            <label for="main-deleted" class="main-menu-bls">
+              <div class="main-icon">
+                <svg class="svg-rubbish" viewBox="0 0 512 512"><use xlink:href="#symbol-rubbish"/></svg>
+              </div>
+              <div class="main-menu-bl">
+                <p>Deleted</p>
+              </div>
+            </label>
+
+            <input id="main-unread" type="checkbox" class="hide-input" filter="read" checked="checked"/>
+            <label for="main-unread" class="main-menu-bls">
+              <div class="main-icon">
+                <svg class="svg-vision" viewBox="0 0 379.57 379.57"><use xlink:href="#symbol-vision"/></svg>
+              </div>
+              <div class="main-menu-bl">
+                <p>Read</p>
+              </div>
+            </label>
+
+            <div class="line-horiz-main"></div>
+
+            <input id="main-themes" type="checkbox" class="hide-input"/>
+            <label for="main-themes" class="main-menu-bls main-menu-bls-over">
+              <div class="main-icon">
+                <svg class="svg-palette" viewBox="0 0 459 459"><use xlink:href="#symbol-palette"/></svg>
+              </div>
+              <div class="main-menu-bl">
+                <p>Themes</p>
+              </div>
+              <ul class="con-theme-list">
+                <li>
+                  <input id="theme-dark" type="radio" name="themes" value="dark" class="hide-input" checked="checked"/>
+                  <label for="theme-dark" class="but-themes"></label>
+                </li>
+                <li>
+                  <input id="theme-white" type="radio" name="themes" value="white" class="hide-input"/>
+                  <label for="theme-white" class="but-themes"></label>
+                </li>
+              </ul>
+            </label>
+
+
+
+          </div>
+
+
+          <div class="main-panel">
+            <div class="horizontal-top">
+              <div class="for-menu">
+                <input id="find-user" type="text" placeholder="Search">
+                <div class="find-user-clear"></div>
+              </div>
+              <div class="for-selected">
+                <div class="con-selected">
+                  <h5 class="title-selected"></h5>
+                  <h6 class="time-selected"></h6>
+                </div>
+              </div>
+            </div>
+
+            <div class="horizontal-middle clearfix">
+              <div class="panel-with-menu">
+                <ul class="list clearfix"></ul>
+                <div class="div-anim-processing" activate="false"></div>
+              </div>
+              <div class="panel-with-selected" group-id="-1">
+                <ul class="list clearfix"></ul>
+                <div class="empty-selected">
+                  <p>Select group</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="horizontal-bottom">
+              <div class="cur-time">
+                <span>Last updated: </span>
+                <p></p>
+              </div>
+              <div class="size-cache-mini">
+                <span>Size cache: </span>
+                <p>0</p>
+              </div>
+              <div class="cur-page">
+                <span>Page: </span>
+                <p>0</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
