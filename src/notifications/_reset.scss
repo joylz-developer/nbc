@@ -1,0 +1,216 @@
+$padding: 10;
+
+html,
+body,
+div,
+span,
+applet,
+object,
+iframe,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+blockquote,
+pre,
+a,
+abbr,
+acronym,
+address,
+big,
+cite,
+code,
+del,
+dfn,
+em,
+img,
+ins,
+kbd,
+q,
+s,
+samp,
+small,
+strike,
+strong,
+sub,
+sup,
+tt,
+var,
+b,
+u,
+i,
+center,
+dl,
+dt,
+dd,
+ol,
+ul,
+li,
+fieldset,
+form,
+label,
+legend,
+table,
+capxion,
+tbody,
+tfoot,
+thead,
+tr,
+th,
+td,
+article,
+aside,
+canvas,
+details,
+embed,
+figure,
+figcapxion,
+footer,
+header,
+hgroup,
+menu,
+nav,
+output,
+section,
+summary,
+time,
+mark,
+audio,
+video {
+  font: inherit;
+  font-size: 14px;
+  margin: 0;
+  padding: 0;
+  vertical-align: baseline;
+  border: 0;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  line-height: 1.15;
+  /* 1 */
+  -webkit-text-size-adjust: 100%;
+  /* 2 */
+}
+
+body {
+  margin: 0;
+}
+
+main {
+  display: block;
+}
+
+li {
+  list-style-type: none;
+}
+
+ul {
+  margin-left: 0;
+  padding-left: 0;
+}
+
+.row {
+	display: flex;
+	flex-wrap: wrap;
+	margin: 0 -#{$padding}px;
+	> [class*="col-"] {
+		position: relative;
+		min-height: 1px;
+		padding-right: $padding + px;
+		padding-left: $padding + px;
+	
+		float: left;
+	}
+} 
+
+.our-grid {
+  margin: 0 auto;
+  padding: 0 #{$padding}px;
+  max-width: 1180px;
+  overflow: hidden;
+}
+
+// .clearfix::after {
+//   display: table;
+//   clear: both;
+//   content: '';
+// }
+
+@mixin gen-col($short) {
+	@for $i from 1 through 12 {
+		.col#{$short}-#{$i} { 
+			width: #{100 - (100 / 12) * abs($i - 12)}#{'%'}; 
+		}
+	
+		.pull#{$short}--#{$i} { 
+			right: #{100 - (100 / 12) * abs($i - 12)}#{'%'}; 
+		}
+	
+		.push#{$short}-#{$i} { 
+			left: #{100 - (100 / 12) * abs($i - 12)}#{'%'}; 
+		}
+	
+		.offset#{$short}-#{$i} { 
+			margin-left: #{100 - (100 / 12) * abs($i - 12)}#{'%'}; 
+		}
+	}
+
+	.pull#{$short}-0 {
+		right: auto;
+	} 
+
+	.push#{$short}-0 {
+		left: auto;
+	}
+
+	.offset#{$short}-0 {
+		margin-left: 0;
+	}
+
+	.col#{$short}-auto {
+		-webkit-box-flex: 0;
+    -ms-flex: 0 0 auto;
+    flex: 0 0 auto;
+    width: auto;
+    max-width: none;
+	}
+
+	.col#{$short} {
+		-ms-flex-preferred-size: 0;
+		flex-basis: 0;
+		-webkit-box-flex: 1;
+		-ms-flex-positive: 1;
+		flex-grow: 1;
+		max-width: 100%;
+	}
+}
+
+@each $short, $size in 
+(xs, 0), 
+('-sm', 576), 
+('-md', 768), 
+('-lg', 992), 
+('-xl', 1200) {
+	@if ($short != xs) {
+		@media (min-width: #{$size}px) {
+			@include gen-col($short);
+		}
+	} @else {
+		@include gen-col('');
+	}
+}
+
+.w-100 {
+	width: 100%!important;
+}

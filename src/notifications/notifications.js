@@ -1,4 +1,4 @@
-import './reset.css';
+// import './reset.css';
 import './notifications.scss';
 
 import * as $ from 'jquery';
