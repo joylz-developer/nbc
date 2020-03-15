@@ -26,6 +26,7 @@ const optimization = () => {
 
   if (isProd) {
     config.minimizer = [
+
       new OptimizeCssAssetsPlugin({
         assetNameRegExp: /\.css$/g,
         cssProcessor: require('cssnano'),
@@ -43,23 +44,11 @@ const optimization = () => {
 const plugins = () => {
   const base = [
     new webpack.ProgressPlugin(),
-    new CleanWebpackPlugin(),
-    // new WebpackShellPlugin({
-    //   // onBuildStart: ['mkdir -p ./builds && rar a ./builds/nbc.rar ./dist -r -y "-ag-yyyy-mm-dd"'],
-    //   onBuildEnd: [
-    //     `mkdir ${__dirname + '\\builds'} & rar a ${__dirname + '\\builds\\nbc.rar'} ${__dirname + '\\dist'} -r -y "-ag-yyyymmddhhmmss"`
-    //   ]
-    // }),
-    // () => {
-    //   if (isProd) {
-    //     return new WebpackShellPlugin({
-    //       // onBuildStart: ['mkdir -p ./builds && rar a ./builds/nbc.rar ./dist -r -y "-ag-yyyy-mm-dd"'],
-    //       onBuildEnd: [
-    //         `mkdir ${__dirname + '\\builds'} & rar a ${__dirname + '\\builds\\nbc.rar'} ${__dirname + '\\dist'} -r -y "-ag-yyyymmddhhmmss"`
-    //       ]
-    //     });
-    //   }
-    // },
+    () => {
+      if (isProd) {
+        return new CleanWebpackPlugin();
+      }
+    },
     new MomentLocalesPlugin({
       localesToKeep: ['ru'],
     }),

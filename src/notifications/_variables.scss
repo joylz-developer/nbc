@@ -1,0 +1,108 @@
+$colors: (
+	followedL: var(--followedL),
+	likedL: var(--likedL),
+	commentedL: var(--commentedL),
+	taggedL: var(--taggedL),
+	deletedL: var(--deletedL),
+	unreadL: var(--unreadL),
+
+	followed: var(--followed),
+	liked: var(--liked),
+	commented: var(--commented),
+	tagged: var(--tagged),
+	deleted: var(--deleted),
+	unread: var(--unread),
+);
+
+$dark1: #1a1a1a;
+$dark2: #696969;
+
+$white1: #fff;
+$white2: #515c63;
+
+:root[theme="dark"] {
+	--background: #1a1a1a;
+
+	--tileUltra: #5a5a5a;
+	--tileLight: #424242;
+	--tile: #2b2b2b;
+	--tileLow: #2b2b2b3d;
+
+	--fontLight: #b6b6b6;
+	--fontNorm: #868686;
+	--fontLow: #696969;
+
+	--followedL: rgb(0, 189, 125);
+	--likedL: rgb(173, 0, 69);
+	--commentedL: rgb(0, 161, 193);
+	--taggedL: rgb(182, 187, 0);
+	--deletedL: rgb(193, 193, 193);
+	--unreadL: rgb(223, 53, 1);
+
+	--followed: rgba(6,124,84,0.4);
+	--liked: rgba(124,6,53,0.4);
+	--commented: rgba(6,104,124,0.4);
+	--tagged: rgba(121,124,6,0.4);
+	--deleted: rgba(159,159,159,0.4);
+	--unread: hsla(14, 99%, 44%, 0.4);
+
+	--palette: rgb(175, 175, 175);
+
+	--unreadLine: #de3501;
+	--deleteColor: rgb(173, 0, 29);
+	--colShadow: #1b1b1b;
+}
+
+:root[theme="white"] {
+	--background: #fff;
+
+	--tileUltra: #d4d4d4;
+	--tileLight: #eaeaea;
+	--tile: #f3f5f6;
+	--tileLow: #f3f5f6;
+
+	--fontLight: #39464e;
+	--fontNorm: #39464e;
+	--fontLow: #515c63;
+
+	--followedL: rgb(0, 255, 60);
+	--likedL: rgb(255, 0, 0);
+	--commentedL: rgb(0, 213, 255);
+	--taggedL: rgb(253, 155, 33);
+	--deletedL: rgb(123, 123, 123);
+	--unreadL: rgb(255, 71, 0);
+
+	--followed: rgb(199, 255, 212);
+	--liked: rgb(255, 199, 199);
+	--commented: rgb(176, 242, 255);
+	--tagged: rgb(255, 215, 166);
+	--deleted: rgb(208, 208, 208);
+	--unread: rgba(255, 72, 0, 0.15);
+
+	--palette: rgb(27, 27, 27);
+
+	--unreadLine: #ff7f42;
+	--deleteColor: rgb(247, 0, 0);
+	--colShadow: rgba(0, 0, 0, 0.397);
+}
+
+
+$wMenu: 300px;
+$wSelected: 300px;
+$wAva: 40px;
+$wPhoto: 40px;
+$wReading: 10px;
+$hItemMenu: 54px;
+$hSideBarLeft: 30px;
+$hSideBarLeftW: 30;
+$hSideBarLeftWide: 150px;
+$hHorizontalTop: 50px;
+$hHorizontalBottom: 40px;
+$hHorizontalMiddle: $hHorizontalTop + $hHorizontalBottom;
+$hMainIcon: 15px;
+
+$borderButThemes: 4;
+$baseHButThemes: $hSideBarLeftW * 0.7;
+$hButThemes: #{$baseHButThemes + $borderButThemes * 2}px;
+$diagButThemes: pow((pow($baseHButThemes, 2) + pow($baseHButThemes, 2)), 1 / 2);
+$shiftButThemes: -#{($diagButThemes / 2)}px;
