@@ -5,13 +5,15 @@ const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const HTMLWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-var OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
+const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
+const WebpackShellPlugin = require("webpack-shell-plugin");
 
 const MomentLocalesPlugin = require('moment-locales-webpack-plugin');
 
 const distPath = path.join(__dirname, '/dist');
 
-const isDev = true;
+const isDev = process.env.NODE_ENV === 'development';
+const isProd = !isDev;
 
 const filename = ext => isDev ? `[name].${ext}` : `[name].[hash].${ext}`;
 
@@ -22,12 +24,18 @@ const optimization = () => {
     }
   }
 
-  // if (isProd) {
-  //   config.minimizer = [
-  //     new OptimizeCssAssetWebpackPlugin(),
-  //     new TerserWebpackPlugin()
-  //   ]
-  // }
+  if (isProd) {
+    config.minimizer = [
+      new OptimizeCssAssetsPlugin({
+        assetNameRegExp: /\.css$/g,
+        cssProcessor: require('cssnano'),
+        cssProcessorPluginOptions: {
+          preset: ['default', { discardComments: { removeAll: true } }],
+        },
+        canPrint: true
+      }),
+    ]
+  }
 
   return config
 }
@@ -35,7 +43,23 @@ const optimization = () => {
 const plugins = () => {
   const base = [
     new webpack.ProgressPlugin(),
-    () => { if (isDev) { return new CleanWebpackPlugin(); } },
+    new CleanWebpackPlugin(),
+    // new WebpackShellPlugin({
+    //   // onBuildStart: ['mkdir -p ./builds && rar a ./builds/nbc.rar ./dist -r -y "-ag-yyyy-mm-dd"'],
+    //   onBuildEnd: [
+    //     `mkdir ${__dirname + '\\builds'} & rar a ${__dirname + '\\builds\\nbc.rar'} ${__dirname + '\\dist'} -r -y "-ag-yyyymmddhhmmss"`
+    //   ]
+    // }),
+    // () => {
+    //   if (isProd) {
+    //     return new WebpackShellPlugin({
+    //       // onBuildStart: ['mkdir -p ./builds && rar a ./builds/nbc.rar ./dist -r -y "-ag-yyyy-mm-dd"'],
+    //       onBuildEnd: [
+    //         `mkdir ${__dirname + '\\builds'} & rar a ${__dirname + '\\builds\\nbc.rar'} ${__dirname + '\\dist'} -r -y "-ag-yyyymmddhhmmss"`
+    //       ]
+    //     });
+    //   }
+    // },
     new MomentLocalesPlugin({
       localesToKeep: ['ru'],
     }),
@@ -62,29 +86,29 @@ const plugins = () => {
     }),
     new CopyWebpackPlugin([
       {
-      from: '../node_modules/jquery/dist/jquery.min.js',
-      to: distPath
+        from: '../node_modules/jquery/dist/jquery.min.js',
+        to: distPath
       },
       {
-      from: 'images/',
-      to: distPath + '/images'
-    }, {
-      from: 'uploads/',
-      to: distPath + '/uploads'
-    }, {
-      from: '*.*',
-      to: distPath
-    }
+        from: 'images/',
+        to: distPath + '/images'
+      }, {
+        from: 'uploads/',
+        to: distPath + '/uploads'
+      }, {
+        from: '*.*',
+        to: distPath
+      }
     ]),
-    new OptimizeCssAssetsPlugin({
-      assetNameRegExp: /\.css$/g,
-      cssProcessor: require('cssnano'),
-      cssProcessorPluginOptions: {
-        preset: ['default', { discardComments: { removeAll: true } }],
-      },
-      canPrint: true
-    }),
-  ]
+  ];
+
+  if (isProd) {
+    base.push(new WebpackShellPlugin({
+      onBuildEnd: [
+        `mkdir .\\builds & rar a .\\builds\\nbc.rar .\\dist -r -y "-ag-yyyymmddhhmmss"`
+      ]
+    }));
+  }
 
   return base;
 }
