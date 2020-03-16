@@ -142,6 +142,10 @@ class ControlerBlocksList {
 
   // supporting
   updateVisible(errText) {
+    let isLastItem = this.data.length === this.scopeList[0].id
+      && this.data.length === this.scopeList[1].id
+      && this.data.length === 0;
+
     if (this.data.length > this.scopeList[1].id) {
       for (let key = this.scopeList[0].id; key <= this.scopeList[1].id; key += 1) {
         if (!ControlerBlocksList.deepEqual(this.data[key], this.oldData[key])) {
@@ -171,7 +175,7 @@ class ControlerBlocksList {
 
       this.updateVisibleItems();
       this.heightList = $(this.list).outerHeight();
-    } else if (this.data.length < this.scopeList[0].id) {
+    } else if (this.data.length < this.scopeList[0].id || isLastItem) {
       this.list.children().remove();
       this.generateBl();
       $(this.list).css('margin-top', `${0}px`);
