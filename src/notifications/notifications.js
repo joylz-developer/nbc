@@ -329,6 +329,7 @@ async function readNotif(con) {
       const { id } = data[itemId];
 
       const rez = await GroupsController.markItRead(id);
+      // const rez = { success: true };
 
       if (rez.success !== true) {
         console.log('rez', rez);
@@ -346,6 +347,7 @@ async function readNotif(con) {
       const { id } = data[itemId];
 
       const rez = await GroupsController.markItRead(id);
+      // const rez = { success: true };
 
       if (rez.success !== true) {
         console.log('rez', rez);
@@ -361,10 +363,19 @@ async function readNotif(con) {
       dataGroups[idSelected][itemId].unread = false;
       ContrGroups.setCurGroupsData(dataGroups);
 
-      const dataMenu = ContrMenu.getData();
+      let dataMenu = ContrMenu.getData();
       dataMenu[curSelected.itemId].countUnread -= 1;
 
-      ContrMenu.update(curSelected.itemId, dataMenu[curSelected.itemId]);
+      if (optionsNotif['bool-event']['hide-read']) {
+        dataMenu[curSelected.itemId].count -= 1;
+
+        if (dataMenu[curSelected.itemId].count === 0) {
+          ContrMenu.splice(curSelected.itemId, 1);
+        } else {
+          ContrMenu.update(curSelected.itemId, dataMenu[curSelected.itemId]);
+        }
+      }
+
       ContrSelected.update(itemId, data[itemId]);
 
       if (ContrGroups.optionsVal['bool-event']['hide-read']) {
