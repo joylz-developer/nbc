@@ -129,10 +129,10 @@ ul {
 		min-height: 1px;
 		padding-right: $padding + px;
 		padding-left: $padding + px;
-	
+
 		float: left;
 	}
-} 
+}
 
 .our-grid {
   margin: 0 auto;
@@ -141,34 +141,34 @@ ul {
   overflow: hidden;
 }
 
-// .clearfix::after {
-//   display: table;
-//   clear: both;
-//   content: '';
-// }
+.clearfix::after {
+  display: table;
+  clear: both;
+  content: '';
+}
 
 @mixin gen-col($short) {
 	@for $i from 1 through 12 {
-		.col#{$short}-#{$i} { 
-			width: #{100 - (100 / 12) * abs($i - 12)}#{'%'}; 
+		.col#{$short}-#{$i} {
+			width: #{100 - (100 / 12) * abs($i - 12)}#{'%'};
 		}
-	
-		.pull#{$short}--#{$i} { 
-			right: #{100 - (100 / 12) * abs($i - 12)}#{'%'}; 
+
+		.pull#{$short}--#{$i} {
+			right: #{100 - (100 / 12) * abs($i - 12)}#{'%'};
 		}
-	
-		.push#{$short}-#{$i} { 
-			left: #{100 - (100 / 12) * abs($i - 12)}#{'%'}; 
+
+		.push#{$short}-#{$i} {
+			left: #{100 - (100 / 12) * abs($i - 12)}#{'%'};
 		}
-	
-		.offset#{$short}-#{$i} { 
-			margin-left: #{100 - (100 / 12) * abs($i - 12)}#{'%'}; 
+
+		.offset#{$short}-#{$i} {
+			margin-left: #{100 - (100 / 12) * abs($i - 12)}#{'%'};
 		}
 	}
 
 	.pull#{$short}-0 {
 		right: auto;
-	} 
+	}
 
 	.push#{$short}-0 {
 		left: auto;
@@ -196,11 +196,11 @@ ul {
 	}
 }
 
-@each $short, $size in 
-(xs, 0), 
-('-sm', 576), 
-('-md', 768), 
-('-lg', 992), 
+@each $short, $size in
+(xs, 0),
+('-sm', 576),
+('-md', 768),
+('-lg', 992),
 ('-xl', 1200) {
 	@if ($short != xs) {
 		@media (min-width: #{$size}px) {
