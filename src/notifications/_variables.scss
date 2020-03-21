@@ -1,3 +1,5 @@
+@use '_fun-mix.scss' as *;
+
 $colors: (
 	followedL: var(--followedL),
 	likedL: var(--likedL),
