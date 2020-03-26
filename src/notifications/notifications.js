@@ -6,7 +6,9 @@ import * as $ from 'jquery';
 import GroupsController from './GroupsController.js';
 import ControlerBlocksList from './ControlerBlocksList.js';
 import ControlerShortcuts from './ControlerShortcuts.js';
+import sleep from './sleep.js';
 import setMini from './setMini.js';
+import { async } from '../../dist/vendors~notifications.2b843a117f1424723bf3';
 
 
 let menu;
@@ -231,7 +233,9 @@ $('body').on('click', '.content-title[data-user]', function (event) {
 });
 
 $('body').on('click', '.con-notif', async function (event) {
-  await readNotif($(this));
+  if ($(this).closest('.con-notif').is('.single, .single-photo')) {
+    await readNotif($(this));
+  }
 });
 
 $('body').on('click', '.reading-bubble', async function (event) {
@@ -241,7 +245,13 @@ $('body').on('click', '.reading-bubble', async function (event) {
 
     const con = $(this).closest('.con-notif');
 
-    await readNotif(con);
+    if (con.is('.single, .single-photo')) {
+      console.log('single');
+      await readNotif(con);
+    } else if (con.is('.group')) {
+      console.log('group');
+      await readGroup(con);
+    }
   }
 });
 
@@ -317,76 +327,171 @@ function setNewActorLikingUser(act) {
 }
 
 async function readNotif(con) {
-  if (con.is('.single, .single-photo')) {
-    const rootContr = con.closest('.panel-with-menu, .panel-with-selected').attr('class');
-    const indData = parseInt(con.attr('index-data'), 10);
-    const itemId = parseInt(con.closest('.item-menu').attr('item'), 10);
+  const rootContr = con.closest('.panel-with-menu, .panel-with-selected').attr('class');
+  const indData = parseInt(con.attr('index-data'), 10);
+  const itemId = parseInt(con.closest('.item-menu').attr('item'), 10);
 
-    console.log(con, rootContr, indData, itemId);
+  console.log(con, rootContr, indData, itemId);
 
-    if (rootContr === 'panel-with-menu') {
-      const data = ContrMenu.getData();
-      const { id } = data[itemId];
+  if (rootContr === 'panel-with-menu') {
+    const data = ContrMenu.getData();
+    const { id } = data[itemId];
 
-      const rez = await GroupsController.markItRead(id);
-      // const rez = { success: true };
+    // const rez = await GroupsController.markItRead(id);
+    const rez = { success: true };
+    await sleep(1000);
 
-      if (rez.success !== true) {
-        console.log('rez', rez);
-        return false;
-      }
+    if (rez.success !== true) {
+      console.log('rez', rez);
+      return false;
+    }
 
-      data[itemId].unread = false;
-      ContrMenu.update(itemId, data[itemId]);
+    data[itemId].unread = false;
+    ContrMenu.update(itemId, data[itemId]);
 
-      if (ContrGroups.optionsVal['bool-event']['hide-read']) {
-        ContrMenu.splice(itemId, 1);
-      }
+    if (ContrGroups.optionsVal['bool-event']['hide-read']) {
+      ContrMenu.splice(itemId, 1);
+    }
+  } else {
+    const dataSelected = ContrSelected.getData();
+    const { id } = dataSelected[itemId];
+
+    // const rez = await GroupsController.markItRead(id);
+    const rez = { success: true };
+    await sleep(1000);
+
+    if (rez.success !== true) {
+      console.log('rez', rez);
+      return false;
+    }
+
+    dataSelected[itemId].unread = false;
+
+    const curSelected = ContrGroups.getCurSelectedGroupId();
+    const idSelected = curSelected.id;
+
+    const dataGroups = ContrGroups.getCurGroupsData();
+    dataGroups[idSelected][itemId].unread = false;
+    ContrGroups.setCurGroupsData(dataGroups);
+
+    let dataMenu = ContrMenu.getData();
+    dataMenu[curSelected.itemId].countUnread -= 1;
+
+    if (ContrGroups.optionsVal['bool-event']['hide-read']) {
+      dataMenu[curSelected.itemId].count -= 1;
+    }
+
+    if (dataMenu[curSelected.itemId].count === 0) {
+      ContrMenu.splice(curSelected.itemId, 1);
     } else {
-      const data = ContrSelected.getData();
-      const { id } = data[itemId];
+      ContrMenu.update(curSelected.itemId, dataMenu[curSelected.itemId]);
+    }
 
-      const rez = await GroupsController.markItRead(id);
-      // const rez = { success: true };
+    ContrSelected.update(itemId, dataSelected[itemId]);
+
+    if (ContrGroups.optionsVal['bool-event']['hide-read']) {
+      ContrSelected.splice(itemId, 1);
+    }
+  }
+
+  ContrGroups.updateData(indData, 'unread', false);
+
+  return true;
+}
+
+async function readGroup(con) {
+  const idxDataGroup = parseInt(con.attr('group-id'), 10);
+  const itemId = parseInt(con.closest('.item-menu').attr('item'), 10);
+
+  const dataGroup = ContrGroups.getCurGroupsData()[idxDataGroup].map((el) => {
+    return { idxData: el.idxData, id: el.id };
+  });
+
+  if (dataGroup !== null) {
+    for await (const el of dataGroup) {
+      // const rez = await GroupsController.markItRead(el.idxData);
+      const rez = { success: true };
+      await sleep(1000);
 
       if (rez.success !== true) {
-        console.log('rez', rez);
-        return false;
+        console.error('rez read notification', rez, el);
+        continue;
       }
 
-      const curSelected = ContrGroups.getCurSelectedGroupId();
-      const idSelected = curSelected.id;
+      const dataMenu = ContrMenu.getData();
+      const dataSelected = ContrSelected.getData();
 
-      data[itemId].unread = false;
+      ContrGroups.updateData(el.idxData, 'unread', false);
 
-      const dataGroups = ContrGroups.getCurGroupsData();
-      dataGroups[idSelected][itemId].unread = false;
-      ContrGroups.setCurGroupsData(dataGroups);
+      const isHideRead = ContrGroups.optionsVal['bool-event']['hide-read'];
 
-      let dataMenu = ContrMenu.getData();
-      dataMenu[curSelected.itemId].countUnread -= 1;
+      // update Selected block and list
+      const itemIdSelected = dataSelected.findIndex(function (element) {
+        return element.idxData === el.idxData;
+      });
 
-      if (optionsNotif['bool-event']['hide-read']) {
-        dataMenu[curSelected.itemId].count -= 1;
+      if (itemIdSelected !== -1) {
+        dataSelected[itemIdSelected].unread = false;
+        ContrSelected.update(itemIdSelected, dataSelected[itemIdSelected]);
 
-        if (dataMenu[curSelected.itemId].count === 0) {
-          ContrMenu.splice(curSelected.itemId, 1);
-        } else {
-          ContrMenu.update(curSelected.itemId, dataMenu[curSelected.itemId]);
+        if (isHideRead) {
+          ContrSelected.splice(itemIdSelected, 1);
         }
       }
 
-      ContrSelected.update(itemId, data[itemId]);
+      // update Menu block and list
+      if (typeof dataMenu[itemId] !== 'undefined') {
+        dataMenu[itemId].countUnread -= 1;
 
-      if (ContrGroups.optionsVal['bool-event']['hide-read']) {
-        ContrSelected.splice(itemId, 1);
+        if (isHideRead) {
+          dataMenu[itemId].count -= 1;
+        }
+
+        if (dataMenu[itemId].count === 0) {
+          ContrMenu.splice(itemId, 1);
+        } else {
+          ContrMenu.update(itemId, dataMenu[itemId]);
+        }
       }
+
+      // update curCurGroupsData
+      const dataGroups = ContrGroups.getCurGroupsData();
+      const newDataGroups = dataGroups.map((group) => {
+        let res = filterMap(
+          (oElem) => {
+            return !isHideRead;
+          },
+          (oElem) => {
+            if (oElem.id === el.id) {
+              oElem.unread = false;
+            }
+            return oElem;
+          }
+        );
+
+        return res(group);
+        // return group.map((oElem) => {
+        //   if (!isHideRead) {
+        //     if (oElem.id === el.id) {
+        //       oElem.unread = false;
+        //     }
+        //     return oElem;
+        //   }
+        // });
+      });
+      ContrGroups.setCurGroupsData(newDataGroups);
     }
-
-    ContrGroups.updateData(indData, 'unread', false);
   }
+}
 
-  return true;
+function filterMap(filterFn, mapFn) {
+  return arr => {
+    const newArr = [];
+    for (let x of arr) {
+      if (filterFn(x)) newArr.push(mapFn(x));
+    }
+    return newArr;
+  };
 }
 
 function setTitleSelected(data) {

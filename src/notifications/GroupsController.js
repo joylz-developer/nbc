@@ -1,10 +1,16 @@
 import * as $ from 'jquery';
 var moment = require('moment');
 
+/**
+*
+* @class GroupsController
+*/
 class GroupsController {
   constructor(options, cacheMini, selected, date = '') {
+    // исходные уведомления (до обработки)
     this.data = [];
     this.curData = [];
+    // текущии собранные в группы уведомления (после обработки) (!только группы)
     this.curGroupsData = [];
     this.options = options;
     this.selected = selected;
@@ -14,17 +20,28 @@ class GroupsController {
 
 
     this.lastAction = '';
-    this.dataGroupNotif = {
+    this.lastGroupNotifs = {
       isEmpty: true,
       list: [],
       typeAction: [],
       count: 0,
       countUnread: 0,
       savedEvents: [],
+      idGroup: 0,
       saveFirstDate: '',
+      reset: function () {
+        this.isEmpty = true;
+        this.list = [];
+        this.typeAction = [];
+        this.count = 0;
+        this.countUnread = 0;
+        this.savedEvents = [];
+        this.saveFirstDate = '';
+        this.idGroup += 1;
+      },
     };
 
-    this.isEmptyCurPage = this.dataGroupNotif.isEmpty;
+    this.isEmptyCurPage = this.lastGroupNotifs.isEmpty;
     this.curSelectedGroupId = {
       id: -1,
       itemId: -1,
@@ -65,6 +82,10 @@ class GroupsController {
 
   get curDataVal() {
     return this.curData;
+  }
+
+  get dataObj() {
+    return this.data;
   }
 
   // set isLoadingVal(val) {
@@ -117,11 +138,14 @@ class GroupsController {
   }
 
   setCurGroupsData(data) {
+    console.log('dataGroupNotif', this.lastGroupNotifs, data);
     this.curGroupsData = data;
   }
 
   updateData(id, prop, val) {
     this.data[id][prop] = val;
+
+    // console.log('this.data[id]', this.data[id], this.dataGroupNotif);
   }
 
   async getPageNotifs(oIsLoading) {
@@ -142,7 +166,7 @@ class GroupsController {
     const data = page?.results;
 
     if (data) {
-      this.isEmptyCurPage = this.dataGroupNotif.isEmpty;
+      this.isEmptyCurPage = this.lastGroupNotifs.isEmpty;
 
       $.each(data, (i, oItem) => {
         oItem.idxData = this.data.length;
@@ -183,17 +207,9 @@ class GroupsController {
       this.curCountSend = 0;
       this.curSelectedGroupId = { id: -1, itemId: -1 };
 
-      this.dataGroupNotif = {
-        isEmpty: true,
-        list: [],
-        typeAction: [],
-        count: 0,
-        countUnread: 0,
-        savedEvents: [],
-        saveFirstDate: '',
-      };
+      this.lastGroupNotifs.reset();
 
-      this.isEmptyCurPage = this.dataGroupNotif.isEmpty;
+      this.isEmptyCurPage = this.lastGroupNotifs.isEmpty;
 
       $.each(this.data, (i, item) => {
         this.scanData(item);
@@ -237,30 +253,27 @@ class GroupsController {
     const curActionLike = GroupsController.compareVar(typeCur, typeLast, 'followed') || GroupsController.compareVar(typeCur, typeLast, 'deleted') || (GroupsController.compareVar(typeCur, typeLast, 'liked') && this.lastAction.actor === curentAction.actor) || (GroupsController.compareVar(typeCur, typeLast, 'commented') && this.lastAction.actor === curentAction.actor) || (GroupsController.compareVar(typeCur, typeLast, 'tagged') && this.lastAction.actor === curentAction.actor);
 
     if (curActionLike) {
-      if (this.dataGroupNotif.isEmpty) {
-        this.dataGroupNotif.isEmpty = false;
-        this.dataGroupNotif.typeAction = GroupsController.getNameCssForAction(curentAction);
+      if (this.lastGroupNotifs.isEmpty) {
+        this.lastGroupNotifs.isEmpty = false;
+        this.lastGroupNotifs.typeAction = GroupsController.getNameCssForAction(curentAction);
 
-        this.dataGroupNotif.count = 1;
+        this.lastGroupNotifs.count = 1;
 
         if (this.lastAction.unread) {
-          this.dataGroupNotif.countUnread += 1;
+          this.lastGroupNotifs.countUnread += 1;
         }
 
         // сохранение первого уведомлений для табла
         this.pushSavedEvents(this.lastAction);
-
-        this.dataGroupNotif.list.push(this.converSimple(this.lastAction));
-
-        this.dataGroupNotif.saveFirstDate = this.lastAction.timestamp;
+        this.lastGroupNotifs.list.push(this.converSimple(this.lastAction));
+        this.lastGroupNotifs.saveFirstDate = this.lastAction.timestamp;
       }
 
-      this.dataGroupNotif.list.push(this.converSimple(curentAction));
-
-      this.dataGroupNotif.count += 1;
+      this.lastGroupNotifs.list.push(this.converSimple(curentAction));
+      this.lastGroupNotifs.count += 1;
 
       if (curentAction.unread) {
-        this.dataGroupNotif.countUnread += 1;
+        this.lastGroupNotifs.countUnread += 1;
       }
 
       // сохранение первых уведомлений для табла
@@ -273,53 +286,44 @@ class GroupsController {
   }
 
   trainingEndGroup() {
-    if (this.dataGroupNotif.isEmpty) {
+    if (this.lastGroupNotifs.isEmpty) {
       if (this.lastAction !== '') {
         this.addSimple(this.lastAction);
       }
     } else {
       this.theEndGroup();
-
-      this.dataGroupNotif = {
-        isEmpty: true,
-        list: [],
-        typeAction: [],
-        count: 0,
-        countUnread: 0,
-        savedEvents: [],
-        saveFirstDate: '',
-      };
+      this.lastGroupNotifs.reset();
     }
   }
 
   theEndGroup() {
-    if (!this.dataGroupNotif.isEmpty && this.dataGroupNotif.count > 0) {
+    if (!this.lastGroupNotifs.isEmpty && this.lastGroupNotifs.count > 0) {
       let groupId = this.curGroupsData.length;
 
       if (!this.isEmptyCurPage) {
         const index = this.curGroupsData.length - 1;
-        this.curGroupsData.splice(index, 1, this.dataGroupNotif.list);
+        this.curGroupsData.splice(index, 1, this.lastGroupNotifs.list);
         this.isEmptyCurPage = true;
         groupId -= 1;
       } else {
-        this.curGroupsData.push(this.dataGroupNotif.list);
+        this.curGroupsData.push(this.lastGroupNotifs.list);
       }
 
       this.curData.push({
         type: 'group',
         id: groupId,
-        typeAction: this.dataGroupNotif.typeAction,
-        count: this.dataGroupNotif.count,
-        countUnread: this.dataGroupNotif.countUnread,
-        savedEvents: this.dataGroupNotif.savedEvents,
-        saveFirstDate: this.dataGroupNotif.saveFirstDate,
+        typeAction: this.lastGroupNotifs.typeAction,
+        count: this.lastGroupNotifs.count,
+        countUnread: this.lastGroupNotifs.countUnread,
+        savedEvents: this.lastGroupNotifs.savedEvents,
+        saveFirstDate: this.lastGroupNotifs.saveFirstDate,
       });
 
       if (this.curSelectedGroupId.id === groupId) {
         this.isNeedRelSel = true;
       }
 
-      this.curCountSend += this.dataGroupNotif.count;
+      this.curCountSend += this.lastGroupNotifs.count;
     } else if (this.lastAction !== '') {
       this.addSimple(this.lastAction);
     }
@@ -357,7 +361,7 @@ class GroupsController {
   }
 
   pushSavedEvents(action) {
-    this.dataGroupNotif.savedEvents.push({
+    this.lastGroupNotifs.savedEvents.push({
       name: action.actor,
       img: action.actor_thumbnail.match(/src='(.*)'/)[1],
       id: action.id,
