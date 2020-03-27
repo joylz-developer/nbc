@@ -6,10 +6,9 @@ import * as $ from 'jquery';
 import GroupsController from './GroupsController.js';
 import ControlerBlocksList from './ControlerBlocksList.js';
 import ControlerShortcuts from './ControlerShortcuts.js';
-import sleep from './sleep.js';
+import { sleep, filterMap, define } from './helpers.js';
 import setMini from './setMini.js';
 import { async } from '../../dist/vendors~notifications.2b843a117f1424723bf3';
-
 
 let menu;
 let selected;
@@ -186,7 +185,7 @@ $('body').on('click', '.con-notif[group-id]', function () {
 
   setTitleSelected(data);
 
-  ContrSelected.set(ContrGroups.getCurGroupsData()[id], true);
+  ContrSelected.set(ContrGroups.getCurGroupsData()[id].list, true);
   ContrGroups.setCurSelectedGroupId({ id, itemId });
   setMini(ContrMenu, ContrSelected, ContrGroups, cacheMiniatures);
 });
@@ -246,10 +245,8 @@ $('body').on('click', '.reading-bubble', async function (event) {
     const con = $(this).closest('.con-notif');
 
     if (con.is('.single, .single-photo')) {
-      console.log('single');
       await readNotif(con);
     } else if (con.is('.group')) {
-      console.log('group');
       await readGroup(con);
     }
   }
@@ -371,7 +368,7 @@ async function readNotif(con) {
     const idSelected = curSelected.id;
 
     const dataGroups = ContrGroups.getCurGroupsData();
-    dataGroups[idSelected][itemId].unread = false;
+    dataGroups[idSelected].list[itemId].unread = false;
     ContrGroups.setCurGroupsData(dataGroups);
 
     let dataMenu = ContrMenu.getData();
@@ -403,7 +400,7 @@ async function readGroup(con) {
   const idxDataGroup = parseInt(con.attr('group-id'), 10);
   const itemId = parseInt(con.closest('.item-menu').attr('item'), 10);
 
-  const dataGroup = ContrGroups.getCurGroupsData()[idxDataGroup].map((el) => {
+  const dataGroup = ContrGroups.getCurGroupsData()[idxDataGroup].list.map((el) => {
     return { idxData: el.idxData, id: el.id };
   });
 
@@ -421,10 +418,12 @@ async function readGroup(con) {
       const dataMenu = ContrMenu.getData();
       const dataSelected = ContrSelected.getData();
 
-      ContrGroups.updateData(el.idxData, 'unread', false);
-
       const isHideRead = ContrGroups.optionsVal['bool-event']['hide-read'];
 
+      // ! тут нужно поменять
+      // ! тут нужно поменять
+      // ! тут нужно поменять
+      // ! тут нужно поменять
       // update Selected block and list
       const itemIdSelected = dataSelected.findIndex(function (element) {
         return element.idxData === el.idxData;
@@ -456,43 +455,48 @@ async function readGroup(con) {
 
       // update curCurGroupsData
       const dataGroups = ContrGroups.getCurGroupsData();
-      const newDataGroups = dataGroups.map((group) => {
+      const newDataGroups = dataGroups.map((oGroup) => {
+        let idUnreadNotif = -1;
+
         let res = filterMap(
-          (oElem) => {
-            return !isHideRead;
+          (oElem, index) => {
+            if (oElem.id === el.id && isHideRead) {
+              idUnreadNotif = index;
+              return false;
+            }
+            return true;
           },
-          (oElem) => {
+          (oElem, index) => {
             if (oElem.id === el.id) {
+              idUnreadNotif = index;
               oElem.unread = false;
             }
             return oElem;
           }
         );
 
-        return res(group);
-        // return group.map((oElem) => {
-        //   if (!isHideRead) {
-        //     if (oElem.id === el.id) {
-        //       oElem.unread = false;
-        //     }
-        //     return oElem;
-        //   }
-        // });
+        oGroup.list = res(oGroup.list);
+
+        if (idUnreadNotif !== -1) {
+          oGroup.countUnread -= 1;
+
+          if (isHideRead) {
+            oGroup.count -= 1;
+            oGroup.savedEvents.splice(idUnreadNotif, 1);
+          }
+        }
+
+        return oGroup;
       });
-      ContrGroups.setCurGroupsData(newDataGroups);
+
+      let k = newDataGroups.clone();
+      // debugger;
+      ContrGroups.setCurGroupsData(k);
+      ContrGroups.updateData(el.idxData, 'unread', false);
     }
   }
 }
 
-function filterMap(filterFn, mapFn) {
-  return arr => {
-    const newArr = [];
-    for (let x of arr) {
-      if (filterFn(x)) newArr.push(mapFn(x));
-    }
-    return newArr;
-  };
-}
 
 function setTitleSelected(data) {
   if (typeof data === 'string' && data === 'clear') {
@@ -540,7 +544,7 @@ async function scrollEnd(ev) {
     }
 
     if (ContrGroups.getIsNeedRelSel()) {
-      ContrSelected.set(ContrGroups.getCurGroupsData()[ContrGroups.getCurSelectedGroupId().id]);
+      ContrSelected.set(ContrGroups.getCurGroupsData()[ContrGroups.getCurSelectedGroupId().id].list);
       ContrGroups.setIsNeedRelSel(false);
 
       const data = ContrMenu.getData()[ContrGroups.getCurSelectedGroupId().itemId];

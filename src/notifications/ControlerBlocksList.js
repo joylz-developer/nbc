@@ -1,5 +1,6 @@
 
 import * as $ from 'jquery';
+import { define } from './helpers.js';
 
 class ControlerBlocksList {
   constructor(data, height, amountBl, con, list, fillItem, endList = null,
@@ -50,8 +51,8 @@ class ControlerBlocksList {
   }
 
   set(items, isAtFirst = false) {
-    this.oldData = this.data.slice();
-    this.data = items;
+    this.oldData = this.data.clone();
+    this.data = items.clone();
 
     if (isAtFirst) {
       this.scopeList[0].id = 10e10;
@@ -61,14 +62,14 @@ class ControlerBlocksList {
   }
 
   add(items) {
-    this.oldData = this.data.slice();
+    this.oldData = this.data.clone();
     this.data = this.data.concat(items);
 
     this.addAfter();
   }
 
   push(items) {
-    this.oldData = this.data.slice();
+    this.oldData = this.data.clone();
     this.data = items.concat(this.data);
 
     const itemsMenu = this.list.children('.item-menu');
@@ -102,24 +103,19 @@ class ControlerBlocksList {
   }
 
   splice(index, deleteCount, items) {
-    this.oldData = this.data.slice();
-    console.log(index, deleteCount, items);
+    this.oldData = this.data.clone();
 
     if (typeof items !== 'undefined') {
       this.data.splice(index, deleteCount, ...items);
-
-      console.log(this.data);
-
       this.updateVisible('splice1 Data');
     } else {
       this.data.splice(index, deleteCount);
-
       this.updateVisible('splice2 Data');
     }
   }
 
   insert(index, items) {
-    this.oldData = this.data.slice();
+    this.oldData = this.data.clone();
 
     this.data.splice(index, 0, ...items);
 
@@ -129,7 +125,7 @@ class ControlerBlocksList {
   }
 
   update(index, item) {
-    this.oldData = this.data.slice();
+    this.oldData = this.data.clone();
 
     this.data.splice(index, 1, item);
 

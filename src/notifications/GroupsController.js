@@ -1,4 +1,5 @@
 import * as $ from 'jquery';
+import { define } from './helpers.js';
 var moment = require('moment');
 
 /**
@@ -134,18 +135,24 @@ class GroupsController {
   }
 
   getCurGroupsData() {
+    // console.log('curGroupsData', this.curGroupsData);
     return this.curGroupsData;
   }
 
   setCurGroupsData(data) {
-    console.log('dataGroupNotif', this.lastGroupNotifs, data);
-    this.curGroupsData = data;
+    console.warn('-->', this.lastGroupNotifs, data);
+    data.some((el, i) => {
+      if (this.lastGroupNotifs.idGroup === el.idGroup) {
+        this.lastGroupNotifs = data[i];
+        return true;
+      }
+      return false;
+    });
+    this.curGroupsData = data.clone();
   }
 
   updateData(id, prop, val) {
     this.data[id][prop] = val;
-
-    // console.log('this.data[id]', this.data[id], this.dataGroupNotif);
   }
 
   async getPageNotifs(oIsLoading) {
@@ -163,6 +170,8 @@ class GroupsController {
       type: 'GET',
     });
 
+    console.log('--------------------------------------------');
+
     const data = page?.results;
 
     if (data) {
@@ -179,8 +188,8 @@ class GroupsController {
       // console.log('this curData ->', this.curData);
       // ContrMenu.splice(ContrMenu.getData().length - 1, 1, this.curData);
 
-      console.log('curData', this.curData);
-      console.log('curGroupsData', this.curGroupsData);
+      console.log('curData', this.curData.clone());
+      console.log('curGroupsData', this.curGroupsData.clone());
 
       this.curPage.v += 1;
       // this.isLoading.v = false;
@@ -219,8 +228,8 @@ class GroupsController {
 
       // ContrMenu.set(this.curData, true);
 
-      console.log('curData', this.curData);
-      console.log('curGroupsData', this.curGroupsData);
+      console.log('curData', this.curData.clone());
+      console.log('curGroupsData', this.curGroupsData.clone());
 
       // this.isLoading.v = false;
 
@@ -299,14 +308,16 @@ class GroupsController {
   theEndGroup() {
     if (!this.lastGroupNotifs.isEmpty && this.lastGroupNotifs.count > 0) {
       let groupId = this.curGroupsData.length;
+      const lastGroupNotifs = { ...this.lastGroupNotifs };
 
       if (!this.isEmptyCurPage) {
         const index = this.curGroupsData.length - 1;
-        this.curGroupsData.splice(index, 1, this.lastGroupNotifs.list);
+
+        this.curGroupsData.splice(index, 1, lastGroupNotifs);
         this.isEmptyCurPage = true;
         groupId -= 1;
       } else {
-        this.curGroupsData.push(this.lastGroupNotifs.list);
+        this.curGroupsData.push(lastGroupNotifs);
       }
 
       this.curData.push({
