@@ -1,5 +1,6 @@
 
 import * as $ from 'jquery';
+import { clone } from './helpers.js';
 
 class ControlerBlocksList {
   constructor(data, height, amountBl, con, list, fillItem, endList = null,
@@ -50,7 +51,7 @@ class ControlerBlocksList {
   }
 
   set(items, isAtFirst = false) {
-    this.oldData = this.data.slice();
+    this.oldData = this.data.cln();
     this.data = items;
 
     if (isAtFirst) {
@@ -61,14 +62,14 @@ class ControlerBlocksList {
   }
 
   add(items) {
-    this.oldData = this.data.slice();
+    this.oldData = this.data.cln();
     this.data = this.data.concat(items);
 
     this.addAfter();
   }
 
   push(items) {
-    this.oldData = this.data.slice();
+    this.oldData = this.data.cln();
     this.data = items.concat(this.data);
 
     const itemsMenu = this.list.children('.item-menu');
@@ -102,25 +103,19 @@ class ControlerBlocksList {
   }
 
   splice(index, deleteCount, items) {
-    this.oldData = this.data.slice();
-    console.log(index, deleteCount, items);
+    this.oldData = this.data.cln();
 
     if (typeof items !== 'undefined') {
       this.data.splice(index, deleteCount, ...items);
-
-      console.log(this.data);
-
       this.updateVisible('splice1 Data');
     } else {
       this.data.splice(index, deleteCount);
-
       this.updateVisible('splice2 Data');
     }
   }
 
   insert(index, items) {
-    this.oldData = this.data.slice();
-
+    this.oldData = this.data.cln();
     this.data.splice(index, 0, ...items);
 
     if (index <= this.scopeList[1].id) {
@@ -129,8 +124,7 @@ class ControlerBlocksList {
   }
 
   update(index, item) {
-    this.oldData = this.data.slice();
-
+    this.oldData = this.data.cln();
     this.data.splice(index, 1, item);
 
     if (index <= this.scopeList[1].id && index >= this.scopeList[0].id) {

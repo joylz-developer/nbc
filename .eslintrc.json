@@ -37,6 +37,8 @@
     "no-extend-native": "off",
     "no-extra-semi": "warn",
     "no-unused-vars": "off",
+    "no-continue": "off",
+    "no-restricted-syntax": "off",
     "no-param-reassign": [
       "error",
       {
