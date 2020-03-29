@@ -1,6 +1,8 @@
 import * as $ from 'jquery';
-import { define } from './helpers.js';
+import { sleep, clone } from './helpers.js';
 var moment = require('moment');
+
+// обновить lastGroupNotifs и lastAction после прочтения уведомления
 
 /**
 *
@@ -9,16 +11,14 @@ var moment = require('moment');
 class GroupsController {
   constructor(options, cacheMini, selected, date = '') {
     // исходные уведомления (до обработки)
-    this.data = [];
-    this.curData = [];
+    this.baseData = [];
+    this.allBuildedData = [];
+    this.buildedData = [];
     // текущии собранные в группы уведомления (после обработки) (!только группы)
     this.curGroupsData = [];
     this.options = options;
     this.selected = selected;
-    // console.log(cacheMini);
     this.cacheMiniatures = cacheMini;
-    // console.log(this.cacheMiniatures.v);
-
 
     this.lastAction = '';
     this.lastGroupNotifs = {
@@ -30,7 +30,7 @@ class GroupsController {
       savedEvents: [],
       idGroup: 0,
       saveFirstDate: '',
-      reset: function () {
+      reset: function (isNew = false) {
         this.isEmpty = true;
         this.list = [];
         this.typeAction = [];
@@ -38,7 +38,11 @@ class GroupsController {
         this.countUnread = 0;
         this.savedEvents = [];
         this.saveFirstDate = '';
-        this.idGroup += 1;
+        if (isNew) {
+          this.idGroup = 0;
+        } else {
+          this.idGroup += 1;
+        }
       },
     };
 
@@ -47,6 +51,7 @@ class GroupsController {
       id: -1,
       itemId: -1,
     };
+    // need reload selected group
     this.isNeedRelSel = false;
 
     this.curPage = {
@@ -82,16 +87,27 @@ class GroupsController {
   }
 
   get curDataVal() {
-    return this.curData;
+    return this.buildedData;
+  }
+
+  /**
+   * Returns notification group by `id`
+   * @param {number} id
+   * @returns { object } `el` - the element itself, `i` - item index in `buildedData`
+   * @memberof GroupsController
+   */
+  getGroupById(id) {
+    return this.allBuildedData.find((el, i, arr) => {
+      if (el?.idGroup === id) {
+        return { el, i };
+      }
+      return false;
+    });
   }
 
   get dataObj() {
-    return this.data;
+    return this.baseData;
   }
-
-  // set isLoadingVal(val) {
-  //   this.isLoading.v = val;
-  // }
 
   set curPageVal(val) {
     this.curPage.v = val;
@@ -134,25 +150,31 @@ class GroupsController {
     return this.curCountSend;
   }
 
-  getCurGroupsData() {
-    // console.log('curGroupsData', this.curGroupsData);
-    return this.curGroupsData;
-  }
-
-  setCurGroupsData(data) {
-    console.warn('-->', this.lastGroupNotifs, data);
-    data.some((el, i) => {
-      if (this.lastGroupNotifs.idGroup === el.idGroup) {
-        this.lastGroupNotifs = data[i];
-        return true;
-      }
-      return false;
-    });
-    this.curGroupsData = data.clone();
-  }
-
   updateData(id, prop, val) {
-    this.data[id][prop] = val;
+    this.baseData[id][prop] = val;
+  }
+
+  updateLastGroupNotifs(data) {
+    if (this.lastGroupNotifs.idGroup === data.idGroup || this.lastGroupNotifs.idGroup === data) {
+      if (typeof data === 'number') {
+        this.lastGroupNotifs.reset();
+      } else {
+        this.lastGroupNotifs.list = data.list;
+        this.lastGroupNotifs.count = data.count;
+        this.lastGroupNotifs.countUnread = data.countUnread;
+        this.lastGroupNotifs.savedEvents = data.savedEvents;
+      }
+    }
+  }
+
+  updateLastAction(action) {
+    if (this.lastAction.id === action.id || this.lastAction.id === action) {
+      if (typeof data === 'number') {
+        this.lastAction = '';
+      } else {
+        this.lastAction.unread = action.unread;
+      }
+    }
   }
 
   async getPageNotifs(oIsLoading) {
@@ -162,7 +184,7 @@ class GroupsController {
 
     oIsLoading.v = true;
 
-    this.curData = [];
+    this.buildedData = [];
     this.curCountSend = 0;
 
     const page = await GroupsController.getResBc({
@@ -170,16 +192,15 @@ class GroupsController {
       type: 'GET',
     });
 
-    console.log('--------------------------------------------');
-
     const data = page?.results;
 
     if (data) {
       this.isEmptyCurPage = this.lastGroupNotifs.isEmpty;
 
       $.each(data, (i, oItem) => {
-        oItem.idxData = this.data.length;
-        this.data.push(oItem);
+        oItem.idxData = this.baseData.length;
+        oItem.idGroup = -1;
+        this.baseData.push(oItem);
         this.scanData(oItem);
       });
 
@@ -188,8 +209,9 @@ class GroupsController {
       // console.log('this curData ->', this.curData);
       // ContrMenu.splice(ContrMenu.getData().length - 1, 1, this.curData);
 
-      console.log('curData', this.curData.clone());
-      console.log('curGroupsData', this.curGroupsData.clone());
+      console.log('curData', this.buildedData.cln());
+      console.log('All buildedData', this.allBuildedData.cln());
+      console.log('baseData', this.baseData.cln());
 
       this.curPage.v += 1;
       // this.isLoading.v = false;
@@ -209,18 +231,21 @@ class GroupsController {
 
     oIsLoading.v = true;
 
-    if (this.data !== []) {
+    if (this.baseData !== []) {
       this.lastAction = '';
-      this.curData = [];
+      this.buildedData = [];
+      this.allBuildedData = [];
       this.curGroupsData = [];
       this.curCountSend = 0;
       this.curSelectedGroupId = { id: -1, itemId: -1 };
 
-      this.lastGroupNotifs.reset();
+      this.lastGroupNotifs.reset(true);
 
       this.isEmptyCurPage = this.lastGroupNotifs.isEmpty;
 
-      $.each(this.data, (i, item) => {
+      console.log('applyFilter');
+
+      $.each(this.baseData, (i, item) => {
         this.scanData(item);
       });
 
@@ -228,8 +253,9 @@ class GroupsController {
 
       // ContrMenu.set(this.curData, true);
 
-      console.log('curData', this.curData.clone());
-      console.log('curGroupsData', this.curGroupsData.clone());
+      console.log('buildedData', this.buildedData.cln());
+      console.log('All buildedData', this.allBuildedData.cln());
+      console.log('baseData', this.baseData.cln());
 
       // this.isLoading.v = false;
 
@@ -241,30 +267,38 @@ class GroupsController {
     return false;
   }
 
-  scanData(curentAction) {
-    const type = GroupsController.getNameCssForAction(curentAction);
+  scanData(oCurentAction) {
+    const type = GroupsController.getNameCssForAction(oCurentAction);
 
     try {
       const input = this.options['bool-event'][type.namePanel];
-      const unread = this.options['bool-event']['hide-read'] && !curentAction.unread;
-      const actor = this.options['value-input']['only-actor'] !== curentAction.actor && this.options['value-input']['only-actor'] !== '';
+      const unread = this.options['bool-event']['hide-read'] && !oCurentAction.unread;
+      const actor = this.options['value-input']['only-actor'] !== oCurentAction.actor && this.options['value-input']['only-actor'] !== '';
 
       if (input || unread || actor) {
+        oCurentAction.idGroup = -1;
         return;
       }
     } catch (error) {
       console.log(error);
     }
 
-    const typeCur = GroupsController.getNameCssForAction(curentAction).name;
+    const typeCur = GroupsController.getNameCssForAction(oCurentAction).name;
     const typeLast = GroupsController.getNameCssForAction(this.lastAction).name;
 
-    const curActionLike = GroupsController.compareVar(typeCur, typeLast, 'followed') || GroupsController.compareVar(typeCur, typeLast, 'deleted') || (GroupsController.compareVar(typeCur, typeLast, 'liked') && this.lastAction.actor === curentAction.actor) || (GroupsController.compareVar(typeCur, typeLast, 'commented') && this.lastAction.actor === curentAction.actor) || (GroupsController.compareVar(typeCur, typeLast, 'tagged') && this.lastAction.actor === curentAction.actor);
+    const curActionLike = GroupsController.compareVar(typeCur, typeLast, 'followed')
+      || GroupsController.compareVar(typeCur, typeLast, 'deleted')
+      || (GroupsController.compareVar(typeCur, typeLast, 'liked')
+        && this.lastAction.actor === oCurentAction.actor)
+      || (GroupsController.compareVar(typeCur, typeLast, 'commented')
+        && this.lastAction.actor === oCurentAction.actor)
+      || (GroupsController.compareVar(typeCur, typeLast, 'tagged')
+        && this.lastAction.actor === oCurentAction.actor);
 
     if (curActionLike) {
       if (this.lastGroupNotifs.isEmpty) {
         this.lastGroupNotifs.isEmpty = false;
-        this.lastGroupNotifs.typeAction = GroupsController.getNameCssForAction(curentAction);
+        this.lastGroupNotifs.typeAction = GroupsController.getNameCssForAction(oCurentAction);
 
         this.lastGroupNotifs.count = 1;
 
@@ -276,22 +310,26 @@ class GroupsController {
         this.pushSavedEvents(this.lastAction);
         this.lastGroupNotifs.list.push(this.converSimple(this.lastAction));
         this.lastGroupNotifs.saveFirstDate = this.lastAction.timestamp;
+        // save idGroup action
+        this.lastAction.idGroup = this.lastGroupNotifs.idGroup;
       }
 
-      this.lastGroupNotifs.list.push(this.converSimple(curentAction));
+      this.lastGroupNotifs.list.push(this.converSimple(oCurentAction));
       this.lastGroupNotifs.count += 1;
+      // save idGroup action
+      oCurentAction.idGroup = this.lastGroupNotifs.idGroup;
 
-      if (curentAction.unread) {
+      if (oCurentAction.unread) {
         this.lastGroupNotifs.countUnread += 1;
       }
 
       // сохранение первых уведомлений для табла
-      this.pushSavedEvents(curentAction);
+      this.pushSavedEvents(oCurentAction);
     } else {
       this.trainingEndGroup();
     }
 
-    this.lastAction = curentAction;
+    this.lastAction = oCurentAction;
   }
 
   trainingEndGroup() {
@@ -307,28 +345,22 @@ class GroupsController {
 
   theEndGroup() {
     if (!this.lastGroupNotifs.isEmpty && this.lastGroupNotifs.count > 0) {
-      let groupId = this.curGroupsData.length;
-      const lastGroupNotifs = { ...this.lastGroupNotifs };
+      let groupId = this.lastGroupNotifs.idGroup;
+      const lastGroupNotifs = this.lastGroupNotifs.cln();
+
+      const newGroup = lastGroupNotifs;
+      newGroup.type = 'group';
+      newGroup.id = groupId;
 
       if (!this.isEmptyCurPage) {
-        const index = this.curGroupsData.length - 1;
-
-        this.curGroupsData.splice(index, 1, lastGroupNotifs);
+        const index = this.buildedData.length - 1;
+        this.buildedData.splice(index, 1, lastGroupNotifs);
+        this.allBuildedData.splice(this.allBuildedData.length - 1, 1, lastGroupNotifs);
         this.isEmptyCurPage = true;
-        groupId -= 1;
       } else {
-        this.curGroupsData.push(lastGroupNotifs);
+        this.buildedData.push(lastGroupNotifs);
+        this.allBuildedData.push(lastGroupNotifs);
       }
-
-      this.curData.push({
-        type: 'group',
-        id: groupId,
-        typeAction: this.lastGroupNotifs.typeAction,
-        count: this.lastGroupNotifs.count,
-        countUnread: this.lastGroupNotifs.countUnread,
-        savedEvents: this.lastGroupNotifs.savedEvents,
-        saveFirstDate: this.lastGroupNotifs.saveFirstDate,
-      });
 
       if (this.curSelectedGroupId.id === groupId) {
         this.isNeedRelSel = true;
@@ -340,8 +372,9 @@ class GroupsController {
     }
   }
 
-  addSimple(curentAction) {
-    this.curData.push(this.converSimple(curentAction));
+  addSimple(action) {
+    this.buildedData.push(this.converSimple(action));
+    this.allBuildedData.push(this.converSimple(action));
     this.curCountSend += 1;
   }
 
@@ -642,12 +675,21 @@ class GroupsController {
     return false;
   }
 
-  static markItRead(idAction) {
-    return GroupsController.getResBc({
-      url: `https://www.belacam.com/api/mark_it_read/${idAction}/`,
-      type: 'GET',
-      dataType: 'json',
-    });
+  static async markItRead(idAction, isRead = false, time = 1000) {
+    let res = {};
+
+    if (isRead) {
+      res = await GroupsController.getResBc({
+        url: `https://www.belacam.com/api/mark_it_read/${idAction}/`,
+        type: 'GET',
+        dataType: 'json',
+      });
+    } else {
+      await sleep(time);
+      res = { success: true };
+    }
+
+    return res;
   }
 }
 

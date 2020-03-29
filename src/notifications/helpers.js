@@ -19,19 +19,23 @@ function filterMap(filterFn, mapFn) {
   };
 }
 
-const define = Object.defineProperties(Array.prototype, {
-  clone: {
+const clone = Object.defineProperties(Object.prototype, {
+  cln: {
     enumerable: false,
     value: function () {
-      return this.slice();
-    },
-  },
-  jsonClone: {
-    enumerable: false,
-    value: function () {
-      return JSON.parse(JSON.stringify(this));
+      if (Array.isArray(this)) {
+        return this.slice();
+      }
+
+      if (typeof this === 'object') {
+        return JSON.parse(JSON.stringify(this));
+      }
+
+      return 'error defineProperties';
     },
   },
 });
 
-export { sleep, filterMap, define };
+export {
+  sleep, filterMap, clone,
+};
